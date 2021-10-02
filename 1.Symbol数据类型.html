@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+<script>
+  /*
+  * 1、symbol 是一种基本数据类型
+  *   语法：Symbol([Description])
+  *     Description：可选的，字符串类型。对symbol的描述，可用于调试但不是访问symbol本身
+  *
+  * 2、Symbol()函数会返回symbol类型的值，每个从Symbol()返回的symbol值都是唯一的且不可变的。
+  *   该类型具有静态属性和静态方法。
+  *   它的静态属性会暴露几个内建的成员对象；
+  *   它的静态方法会暴露全局的symbol注册，且类似于内建对象类，
+  *   但作为构造函数来说它并不完整，因为它不支持语法："new Symbol()"。
+  *
+  *   var sym = new Symbol() // TypeError
+  *     这会阻止创建一个显式的 Symbol 包装器对象而不是一个 Symbol 值。
+  *     围绕原始数据类型创建一个显式包装器对象从 ECMAScript 6 开始不再被支持。
+  *     然而，现有的原始包装器对象，如 new Boolean、new String以及new Number，因为遗留原因仍可被创建。
+  *
+  *
+  * 3、全局共享的 Symbol
+  *    上面使用Symbol() 函数的语法，不会在你的整个代码库中创建一个可用的全局的symbol类型。
+  *    要创建跨文件可用的symbol，甚至跨域（每个都有它自己的全局作用域） ,
+  *    使用 Symbol.for() 方法和  Symbol.keyFor() 方法从全局的symbol注册表设置和取得symbol。
+  *
+  *    Symbol.for() 类似单例模式，首先会在全局搜索被登记的 Symbol 中是否有该字符串参数作为名称的 Symbol 值，如果有即返回该 Symbol 值，
+  *    若没有则新建并返回一个以该字符串参数为名称的 Symbol 值，并登记在全局环境中供搜索。
+  *
+  *    Symbol.keyFor() 返回一个已登记的 Symbol 类型值的 key ，用来检测该字符串参数作为名称的 Symbol 值是否已被登记。
+  *
+  *
+  * 4、Symbol值不能与其他数据进行运算。
+  *
+  *
+  * 5、一个symbol值能作为对象属性的标识符；这是该数据类型仅有的目的
+  *
+  * 6、在对象中查找 Symbol 属性
+  *    Object.getOwnPropertySymbols() 方法让你在查找一个给定对象的符号属性时返回一个symbol类型的数组。
+  *    注意，每个初始化的对象都是没有自己的symbol属性的，因此这个数组可能为空，除非你已经在对象上设置了symbol属性。
+  *
+  * */
+  const symbol1 = Symbol()
+  const symbol2 = Symbol(42)
+  const symbol3 = Symbol('foo')
+
+  console.log(typeof symbol1)
+  // expected output: "symbol"
+
+  console.log(symbol2 === 42)
+  // expected output: false
+
+  console.log(symbol3.toString())
+  // expected output: "Symbol(foo)"
+
+  console.log(Symbol('foo') === Symbol('foo'))
+  // expected output: false
+
+
+  const obj = {
+    [Symbol('say')]: function () {
+      console.log('Symbol(\'say\')------------------')
+    },
+    [Symbol('eat')]: function () {
+      console.log("Symbol(\'eat\')------------------")
+    }
+  }
+
+  const props = Reflect.ownKeys(obj)
+
+  obj[props[0]]()
+  obj[props[1]]()
+
+  // Object.defineProperty(obj,'name',{
+  //   value:'李四',
+  //   writable: true,
+  //   enumerable: true`
+  // })`
+
+
+  //使用场景
+  // 作为属性名
+  let sy = Symbol("key1")
+
+  // 写法1
+  let syObject = {}
+  syObject[sy] = "kk"
+  console.log(syObject)    // {Symbol(key1): "kk"}
+
+  // 写法2
+  syObject = {
+    [sy]: "kk"
+  }
+  console.log(syObject)    // {Symbol(key1): "kk"}
+
+  // 写法3
+  syObject = {}
+  Object.defineProperty(syObject, sy, {value: "kk"})
+  console.log(syObject)   // {Symbol(key1): "kk"}
+
+  // Symbol 作为对象属性名时不能用.运算符，要用方括号。
+  // 因为.运算符后面是字符串，所以取到的是字符串 sy 属性，而不是 Symbol 值 sy 属性。
+
+  console.log(syObject[sy])
+
+
+  console.log("--------------------------------------------------------")
+
+
+  //注意点：
+  //  Symbol 值作为属性名时，该属性是公有属性不是私有属性，可以在类的外部访问。但是不会出现在 for...in 、 for...of 的循环中，也不会被 Object.keys() 、 Object.getOwnPropertyNames() 返回。
+  //  如果要读取到一个对象的 Symbol 属性，可以通过 Object.getOwnPropertySymbols() 和 Reflect.ownKeys() 取到。
+
+  for (let i in syObject) {
+    console.log(i)
+  }
+
+  Object.keys(syObject)                     // []
+  Object.getOwnPropertySymbols(syObject)    // [Symbol(key1)]
+  Reflect.ownKeys(syObject)                 // [Symbol(key1)]
+
+
+
+  console.log("--------------------------------------------------------")
+
+  let yellow = Symbol("Yellow")
+  let yellow1 = Symbol.for("Yellow")
+  console.log(yellow === yellow1)     // false
+
+  let yellow2 = Symbol.for("Yellow")
+  console.log(yellow1 === yellow2)    // true
+
+
+  console.log("--------------------------------------------------------")
+
+
+  const objOne = {}
+
+  const methodName = {
+    up: Symbol('up'),
+    down: Symbol("down")
+  }
+
+
+  objOne[methodName.up] = function () {
+    console.log('Symbol-up 方法执行了')
+  }
+  objOne[methodName.down] = function () {
+    console.log('Symbol-down 方法执行了')
+  }
+
+  objOne[methodName.up]()
+  objOne[methodName.down]()
+
+
+  console.log("--------------------------------------------------------")
+
+
+  // Symbol内置值
+  // 作用：通过给对象(或类)中添加属性名(或方法)为Symbol内置值（如：Symbol.isInstance)的方式，对对象/类进行功能的增强。
+
+  //1、Symbol.hasInstance 属性 返回一个Symbol值
+  //  用于确认对象是否为该构造函数实例的方法，主要用于instanceof,
+  //  当调用instanceof时，内部方法会调用对象上的Symbol.hasInstance方法
+  class MyArray{
+    static [Symbol.hasInstance](obj){
+      //val：为 instanceof关键字左边的对象
+      return obj instanceof Array
+    }
+  }
+
+  console.log([1] instanceof MyArray)
+
+
+
+  //
+</script>
+</body>
+</html>
